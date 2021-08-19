@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Name</h1>
+  <form action="{% url 'useraddressbook:create_address' %}" method="POST">
+      {% csrf_token%}
+      <input type="text" name="user" value="{{user}}">
+      <input type="text" name="name" placeholder="name">
+      <input type="number" name="number" placeholder="number">
+      <button type="submit">Add</button>
+  </form>
+    
+</body>
+</html>
