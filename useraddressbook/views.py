@@ -1,9 +1,11 @@
+import re
 from django import http
-from django.shortcuts import render,redirect
+from django.shortcuts import get_object_or_404, render,redirect
 from django.http import HttpResponse
 from django.contrib.auth.models import User,auth
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from .models import address
+from .models import book,address
 from django.views.generic import ListView
 
 # Create your views here.
@@ -36,7 +38,7 @@ def login(request):
         user=auth.authenticate(username=username,password=password)
         if user is not None:
             auth.login(request,user)
-            return render(request,'useraddressbook/home.html',{'user':usr})
+            return redirect('useraddressbook:home')
 
         else:
             messages.info(request,'Invalid Credentials')
@@ -46,55 +48,79 @@ def login(request):
         
         return render(request,'useraddressbook/login.html')
 
-def home(request):
-    if request.method=="POST":
-        if request.POST['type']=='create':
-            usr=request.POST['user']
-            return render(request,"useraddressbook/create.html",{'user':usr})
-        if request.POST['type']=='create':
-            usr=request.POST['user']
-            addressusr=address.objects.get(user=usr)
-            return render(request,"useraddressbook/update.html",{'user':usr,'address_usr':addressusr})
+ 
+
+class home(LoginRequiredMixin,ListView):
+    login_url="/login"
+    model=book
+    template_name="useraddressbook/home.html"
+    def get_queryset(self):
+        return book.objects.filter(user=self.request.user)
+
             
-    else:
-        return render(request,"useraddressbook/home.html")
 
-def create_address(request):
-    if request.method=="POST":
-        name=request.POST['name']
-        number=request.POST['number']
-        user=request.POST['user']
-        usr=User.objects.get(username=user)
+ 
 
-        addres=address.objects.create(user=usr,name=name,phone=number)
-        addres.save()
-        return HttpResponse("user created")
-    else:
-        return render(request,"useraddressbook/create.html")  
-
-def update(request):
-    if request.method=="POST":
-        name=request.POST['name']
-        number=request.POST['number']
-        user=request.POST['user']
-        usr=User.objects.get(username=user)
-
-        addres=address.objects.create(user=usr,name=name,phone=number)
-        addres.save()
-        return HttpResponse("details changed")
-
+ 
 class list(ListView):
     template_name="useraddressbook/views.html"
     model=address
 
+ 
 
-def delete_address(request,slug):
-    print("hi")
-    addres=address.objects.get(name=slug)
-    addres.delete()
-    
-    return redirect('useraddressbook:home')
+def bookdetail(request,slug):
+    book=address.objects.filter(book=slug)    
+    context={
+        'object_list':book,
+        'book':slug
+    }
+    return render(request,"useraddressbook/bookdetail.html",context)
 
+
+def newbook(request):
+    if request.method=="POST":
+        bookname=request.POST['bookname']
+        bookobj=book.objects.create(user=request.user,bookname=bookname)
+        bookobj.save()
+        return redirect('useraddressbook:home')
+    else:
+        return render(request,"useraddressbook/newbook.html")
+
+def newaddress(request,slug):
+    if request.method=="POST":
+        name=request.POST['name']
+        number=request.POST['number']
+        bookobj=book.objects.get(user=request.user,id=slug) 
+        addressobj=address.objects.create(book=bookobj,name=name,phone=number)
+        addressobj.save()
+        return redirect('/'f"bookdetail/{slug}")
+    else:
+        return render(request,"useraddressbook/newaddress.html")  
+
+def dlt_book(request,slug):
+    bookobj=get_object_or_404(book,id=slug)
+    bookobj.delete()
+    return redirect('useraddressbook:home')      
+
+def dlt_address(request,slug):
+    addressobj=get_object_or_404(address,id=slug)
+    addressobj.delete() 
+    return redirect('useraddressbook:home')     
+
+
+def update_address(request,slug):
+    if request.method=="POST":
+        name=request.POST['name']
+        number=request.POST['number']
+        addressobj=get_object_or_404(address,id=slug)
+        addressobj.name=name
+        addressobj.number=number
+        addressobj.save()
+        return redirect('useraddressbook:home')  
+    else:
+        addressobj=get_object_or_404(address,id=slug)
+        return render(request,"useraddressbook/updateaddress.html",{'object':addressobj})  
+     
 
           
 
