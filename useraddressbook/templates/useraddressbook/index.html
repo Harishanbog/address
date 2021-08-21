@@ -18,6 +18,9 @@
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
 </head>
 <body>
+     {% for message in messages %}
+     {{ message }}
+     {% endfor %}
     <form action="" method="POST">
         {% csrf_token %}
         <table class="m-4">
@@ -43,9 +46,7 @@
     </table>
     </form>
     <p>Already have an account?<a href="/login">Signin</a></p>
-    {% for message in messages %}
-    {{ message }}
-    {% endfor %}
+
 </body>
 </html>
 {% endblock content %}

@@ -22,10 +22,10 @@
     <div class="card p-3 mb-5 bg-white shadow p-3 mb-5 bg-dark rounded">
         
         <div class="card-body">
-            <a href="{% url 'useraddressbook:update_address' i.id %}" class="text-danger" style="float:right;">Edit</a>
+            <a href="{% url 'useraddressbook:update_address' book i.id %}" class="text-danger" style="float:right;">Edit</a>
             <h1>{{i.name}}</h1>
             <h1>{{i.phone}}</h1>
-            <a href="{% url 'useraddressbook:dlt_address' i.id %}" class="btn btn-dark" style="float:right;">Delete</a>
+            <a href="{% url 'useraddressbook:dlt_address' book i.id %}" class="btn btn-dark" style="float:right;">Delete</a>
             
            
         

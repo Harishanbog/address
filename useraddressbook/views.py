@@ -19,7 +19,7 @@ def signup(request):
 
         if password1==password2:    
                 if User.objects.filter(email=email).exists(): 
-                    messages.info(request,'Email Taken')
+                    messages.info(request,'User already exists')
                     return redirect('/')
                 else:
                     user=User.objects.create_user(username=email,first_name=first_name,last_name=last_name,password=password1,email=email)
@@ -34,7 +34,13 @@ def login(request):
     if request.method=='POST':
         username=request.POST['username']
         password=request.POST['password']
-        usr=User.objects.get(username=username)
+        try:
+            usr=User.objects.get(username=username)
+        except:
+            messages.info(request,'User doesnot exist please register')
+            return redirect('/login')    
+
+
         user=auth.authenticate(username=username,password=password)
         if user is not None:
             auth.login(request,user)
@@ -48,7 +54,9 @@ def login(request):
         
         return render(request,'useraddressbook/login.html')
 
- 
+def logout(request):
+    auth.logout(request)      
+    return redirect('/login')
 
 class home(LoginRequiredMixin,ListView):
     login_url="/login"
@@ -80,6 +88,11 @@ def bookdetail(request,slug):
 def newbook(request):
     if request.method=="POST":
         bookname=request.POST['bookname']
+        qs=book.objects.filter(user=request.user,bookname=bookname)
+        if qs.exists():
+            messages.info(request,'Book already exists')
+            return render(request,"useraddressbook/newbook.html")
+
         bookobj=book.objects.create(user=request.user,bookname=bookname)
         bookobj.save()
         return redirect('useraddressbook:home')
@@ -91,35 +104,44 @@ def newaddress(request,slug):
         name=request.POST['name']
         number=request.POST['number']
         bookobj=book.objects.get(user=request.user,id=slug) 
+        qs=address.objects.filter(book=bookobj,phone=number)
+        if qs.exists():
+            messages.info(request,'Number already there')
+            return render(request,"useraddressbook/newaddress.html")
         addressobj=address.objects.create(book=bookobj,name=name,phone=number)
         addressobj.save()
         return redirect('/'f"bookdetail/{slug}")
     else:
-        return render(request,"useraddressbook/newaddress.html")  
+        return render(request,"useraddressbook/newaddress.html",{'book':slug})  
 
 def dlt_book(request,slug):
     bookobj=get_object_or_404(book,id=slug)
     bookobj.delete()
     return redirect('useraddressbook:home')      
 
-def dlt_address(request,slug):
+def dlt_address(request,int,slug):
     addressobj=get_object_or_404(address,id=slug)
     addressobj.delete() 
-    return redirect('useraddressbook:home')     
+    return redirect('/'f"bookdetail/{int}")     
 
 
-def update_address(request,slug):
+def update_address(request,int,slug):
     if request.method=="POST":
         name=request.POST['name']
         number=request.POST['number']
+        qs=address.objects.filter(book=int,phone=number)
         addressobj=get_object_or_404(address,id=slug)
+        if qs.exists():
+            messages.info(request,'Number already there')
+            return render(request,"useraddressbook/updateaddress.html",{'object':addressobj,'book':int})
+        
         addressobj.name=name
-        addressobj.number=number
+        addressobj.phone=number
         addressobj.save()
-        return redirect('useraddressbook:home')  
+        return redirect('/'f"bookdetail/{int}") 
     else:
         addressobj=get_object_or_404(address,id=slug)
-        return render(request,"useraddressbook/updateaddress.html",{'object':addressobj})  
+        return render(request,"useraddressbook/updateaddress.html",{'object':addressobj,'book':int})  
      
 
           
