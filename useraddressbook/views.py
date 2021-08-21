@@ -7,6 +7,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
 from .models import book,address
 from django.views.generic import ListView
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+import csv
 
 # Create your views here.
 def signup(request):
@@ -143,6 +146,28 @@ def update_address(request,int,slug):
         addressobj=get_object_or_404(address,id=slug)
         return render(request,"useraddressbook/updateaddress.html",{'object':addressobj,'book':int})  
      
+
+
+def book_pdf(request,slug):   
+    template_path='useraddressbook/bookpdf.html'
+    bookobj=get_object_or_404(book,id=slug)
+    addls=address.objects.filter(book=slug) 
+    context={
+        'book':bookobj,
+        'object_list':addls
+    }
+    #create django response object and specify content_type as pdf
+    response=HttpResponse(content_type='application/pdf')
+    response['Content-Disposition']='attachment; filename="book.pdf"'
+    #find the template and render it
+    template=get_template(template_path)
+    html = template.render(context)
+
+    #create pdf
+    pisa_status=pisa.CreatePDF(html,dest=response)
+    if pisa_status.err:
+        return HttpResponse('we had some errors <pre>'+html+'<pre>')
+    return response    
 
           
 

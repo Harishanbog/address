@@ -27,9 +27,10 @@
     <div class="card p-3 mb-5 bg-dark shadow p-3 mb-5 bg-dark rounded">
         
         <div class="card-body">
+          
             <a href="{% url 'useraddressbook:dlt_book' i.id%}" class="btn btn-dark" style="float:right;">Delete</a>
             <a href="{% url 'useraddressbook:bookdetail' i.id %}" class="link-dark no-underline text-warning p-2 btn">{{i.bookname}}</a>
-           
+          <br>  <a href="{% url 'useraddressbook:book_pdf' i.id %}" style="float: right;" class="link-dark no-underline text-warning p-2 btn">PRINT</a>
         
            
         
